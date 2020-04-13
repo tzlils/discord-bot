@@ -1,4 +1,5 @@
 const mjAPI = require('mathjax-node-svg2png');
+const parseCommand = require('../utils/parseCommand.js');
 
 module.exports.config = {
     name: "latex",
@@ -10,16 +11,17 @@ module.exports.config = {
     category: "utility"
 }
 
-module.exports.run = (client, message, args) => {
+module.exports.run = async (message, stdin, stdout) => {
+	let args = parseCommand(message.content.split(' ').slice(1));
+
     mjAPI.typeset({
-        math: args._,
+        math: args._.join(' '),
         format: "TeX",
         png: true,
         scale: (args.scale ? args.scale : 4),
         svg: false
     }, function(result,data) {
-		return {data: uriToBuffer(result.png), type: "image/png"}
-        // message.channel.send({files: [{ attachment: uriToBuffer(result.png), name: 'image.png' }]});
+		stdout.end(uriToBuffer(result.png));
     });
 }
 

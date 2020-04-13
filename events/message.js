@@ -1,57 +1,87 @@
-
 const Discord = require('discord.js');
+const FileType = require('file-type');
 const stream = require('stream');
 const config = require('../config.json');
-const parseCommand = require('../utils/parseCommand.js');
-module.exports = async (client, message) => {
+const client = require('../utils/client.js');
+
+module.exports = async (message) => {
     if (message.author.bot) return;
     if(!message.content.startsWith(config.prefix)) return;
     let pipes = message.content.slice(config.prefix.length).split('|');
     let buffer;
+    message.channel.startTyping();
     for (let i = 0; i < pipes.length; i++) {
         const cmd = pipes[i].trim();
         let s = cmd.split(' ');
         
         let commandHandler = client.commands.get(s[0].toLowerCase());
-        if(!commandHandler) continue;
-        let args = parseCommand(cmd, commandHandler.config.format);
+        if(!commandHandler) {
+            buffer = null;
+            continue;
+        }
+        // let args = parseCommand(cmd, commandHandler.config.format);
 
         let stdin = new stream.PassThrough();
         let stdout = new stream.PassThrough();
         if(i > 0) {
             buffer.pipe(stdin);
             buffer.on('end', ()=>{ 
-                console.log("first stdout closed");
-                stdin.finish();
+                stdin.end();
             });
+        } else {
+            stdin.end();
         }
         buffer = stdout;
         
-        console.log(commandHandler.config.name);
-        commandHandler.run(client, message, args, stdin, stdout).then((res) => {
-            const chunks = []
-            stdout.on('data', (chunk) => { chunks.push(chunk) })
-            stdout.once('end', () => { 
-                Buffer.concat(chunks);
-                let data = JSON.parse(Buffer.concat(chunks).toString());
-                switch (data.type) {
-                    case "image/png":
-                        message.channel.send({files: [{ attachment: Buffer.from(data.data.data), name: 'image.png' }]});
-                        break;
-                    
-                    case "image/jpeg":
-                        message.channel.send({files: [{ attachment: Buffer.from(data.data.data), name: 'image.jpg' }]});
-                        break;
+        message.content = cmd.split(' ').slice(1);
+        
+        commandHandler.run(message, stdin, stdout).catch((reason) => {
+            stdout.end(`\`${commandHandler.config.name}\` has encountered an error`);
+            console.log(reason);
             
-                    case "text/plain":
-                        message.channel.send(sanitize(data.data));
-                        break;
-                    default:
-                        break;
-                }
-            })
-        })
+        });
+    }    
+
+    message.channel.stopTyping();
+    
+    if(!buffer) {
+        message.channel.send("Unknown command");
+        return;
     }
+
+
+    const chunks = []
+    buffer.on('data', async (chunk) => {
+        let type = await FileType.fromBuffer(chunk);
+            
+        if(!type) type = {mime: "text/plain"};
+        switch (type.mime) {
+            case "image/png":
+                message.channel.send({files: [{ attachment: Buffer.from(chunk), name: 'image.png' }]});
+                break;
+            
+            case "image/jpeg":
+                message.channel.send({files: [{ attachment: Buffer.from(chunk), name: 'image.jpg' }]});
+                break;
+    
+            case "text/plain":
+                message.channel.send(sanitize(chunk.toString()));
+                break;
+
+            default:
+                console.log("Unknown format");
+                break;
+        }
+
+        chunks.push(chunk) 
+    })
+    buffer.once('end', () => { 
+        Buffer.concat(chunks);
+    })
+    buffer.on('error', (e) => {
+        console.log(e);
+        
+    })
 }
 
 async function asyncReadStream(stream) {

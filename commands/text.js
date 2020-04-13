@@ -1,6 +1,7 @@
-const gm = require("gm").subClass({
-    imageMagick: true
-});
+const gm = require("gm").subClass({imageMagick: true});
+const parseCommand = require('../utils/parseCommand.js');
+const readStream = require('../utils/readStream.js');
+gm.prototype.buffer = require('../utils/gmBuffer');
 
 module.exports.config = {
     name: "text",
@@ -16,40 +17,26 @@ module.exports.config = {
     category: "utility"
 }
 
-module.exports.run = async (client, message, args, stdin, stdout) => { 
-    stdin.on('end', () => {
-        console.log("stdin closed");
-    })
-    // asyncReadStream(stdin).then((data) => {
-    //     gm().background(args.bgcolor||"none").fill(args.fontcolor||"black")
-    //     .font(args.font||"Arial").pointSize(args.fontsize||64).density(args.density||96)
-    //     .out(`pango:${data.toString()||"Please provide text"}`).gravity("Center").setFormat("png")
-    //     .buffer().then((res) => {            
-    //         stdout.end(JSON.stringify({data: res, type: "image/png"}));
-    //     });
-    // })   
-}
-
-gm.prototype.buffer = function() {
-    return new Promise((resolve, reject) => {
-      this.stream((err, stdout, stderr) => {
-        if (err) { return reject(err) }
-        const chunks = []
-        stdout.on('data', (chunk) => { chunks.push(chunk) })
-        // these are 'once' because they can and do fire multiple times for multiple errors,
-        // but this is a promise so you'll have to deal with them one at a time
-        stdout.once('end', () => { resolve(Buffer.concat(chunks)) })
-        stderr.once('data', (data) => { reject(String(data)) })
-      })
-    })
-}
-
-async function asyncReadStream(stream) {
-    return new Promise((resolve, reject) => {
-        const chunks = []
-        stream.on('data', (chunk) => { chunks.push(chunk) })
-          // these are 'once' because they can and do fire multiple times for multiple errors,
-          // but this is a promise so you'll have to deal with them one at a time
-        stream.once('end', () => { resolve(Buffer.concat(chunks)) })
-    })
+module.exports.run = async (message, stdin, stdout) => { 
+    let args = parseCommand(message.content);    
+    
+    readStream(stdin).then((data) => {    
+        let text = "";    
+        if(data.length) {
+            if(args._ != "") {
+                text = args._.join(' ').replace('-', data.toString());
+            } else {
+                text = data.toString();
+            }
+        } else {
+            text = args._.join(' ');
+        }
+                
+        gm().background(args.bgcolor||"none").fill(args.fontcolor||"black")
+        .font(args.font||"Arial").pointSize(args.fontsize||64).density(args.density||96)
+        .out(`pango:${text||"Please provide text"}`).gravity("Center").setFormat("png")
+        .buffer().then((res) => {            
+            stdout.end(res);
+        });
+    })   
 }

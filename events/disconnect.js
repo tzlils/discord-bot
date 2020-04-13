@@ -1,4 +1,4 @@
 const config = require('../config.json');
-module.exports = (client) => {    
+module.exports = () => {    
     console.log(`Bot disconnected from discord`);
 }

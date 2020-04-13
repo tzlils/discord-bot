@@ -1,4 +1,5 @@
 const http = require('http');
+const parseCommand = require('../utils/parseCommand.js');
 
 module.exports.config = {
     name: "play",
@@ -10,10 +11,8 @@ module.exports.config = {
     category: "utility"
 }
 
-module.exports.run = async (client, message, args) => {
-    args.query = args._.split(' ').slice(1).join(' ');
-    console.log(args);
-    
+module.exports.run = async (message, stdin, stdout) => {
+    let args = parseCommand(message.content.split(' ').slice(1));    
     //http://ai-radio.org/128.opus
     // let loc = "/home/terradice/media/music/Ben Prunty - Ftl_ Faster Than Light - Original Soundtrack/01 - Space Cruise (Title).mp3";
     // console.log(message.member);

@@ -9,9 +9,9 @@ module.exports.config = {
     category: "utility"
 }
 
-module.exports.run = async (client, message, args, stdin, stdout) => {
-    let res = calc(args._);
-    stdout.end(JSON.stringify({data: res.toString(), type: "text/plain"}));
+module.exports.run = async (message, stdin, stdout) => {
+    let res = calc(message.content);
+    stdout.end(res.toString());
 }
 
 function calc(fn) {

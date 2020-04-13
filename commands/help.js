@@ -1,16 +1,14 @@
+const parseCommand = require('../utils/parseCommand.js');
+
 module.exports.config = {
-    name: "test",
+    name: "help",
     description: "Test command",
-    format: [
-                {name: "verbose", type: "bool"},
-                {name: "name", type: "string"},
-                {name: "firstArg", type: "string", pos: 1}
-            ],
+    format: [],
     privilegeLevel: 0,
     category: "utility"
 }
 
-module.exports.run = (client, message, args) => {
-    return {data: `Results: \`${JSON.stringify(args)}\``, type: "text/plain"};
-    // message.channel.send(`Results: \`${JSON.stringify(args)}\``);
+module.exports.run = async (message, stdin, stdout) => {
+    let args = parseCommand(message.content);
+    stdout.end("testing");
 }

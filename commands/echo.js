@@ -1,3 +1,4 @@
+
 module.exports.config = {
     name: "echo",
     description: "Echoes a string",
@@ -6,6 +7,6 @@ module.exports.config = {
     category: "utility"
 }
 
-module.exports.run = async (client, message, args, stdin, stdout) => {
-    stdout.end(JSON.stringify({data: args._, type: "text/plain"}));
+module.exports.run = async (message, stdin, stdout) => {
+    stdout.end(message.content.join(' '));
 }

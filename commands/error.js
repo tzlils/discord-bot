@@ -6,6 +6,6 @@ module.exports.config = {
     category: "utility"
 }
 
-module.exports.run = (client, message, args) => {
+module.exports.run = async (message, stdin, stdout) => {
     throw Error("dummy error");
 }

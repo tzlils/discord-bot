@@ -3,8 +3,7 @@ const Discord = require('discord.js');
 
 const config = require('./config.json');
 const logger = require('./utils/logger.js');
-const parseCommand = require('./utils/parseCommand');
-const client = new Discord.Client();
+const client = require('./utils/client.js');
 
 (() => {
     // Load Commands
@@ -26,7 +25,7 @@ const client = new Discord.Client();
         files.forEach((f) => {
             if(!f.toLowerCase().endsWith('.js')) return;
             const event = require(`./events/${f}`);
-            client.on(f.split(".")[0], event.bind(null, client));
+            client.on(f.split(".")[0], event.bind(null));
             delete require.cache[require.resolve(`./events/${f}`)];
             console.log(`Loaded event from ${f}`)
         })

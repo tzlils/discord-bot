@@ -6,6 +6,7 @@
   "dependencies": {
     "@discordjs/opus": "^0.1.0",
     "discord.js": "^12.1.1",
+    "file-type": "^14.1.4",
     "gm": "^1.23.1",
     "mathjax-node-svg2png": "^2.0.0"
   },
