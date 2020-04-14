@@ -11,7 +11,7 @@ module.exports = async (message) => {
     let buffer;
     message.channel.startTyping();
     for (let i = 0; i < pipes.length; i++) {
-        const cmd = pipes[i].trim();
+        let cmd = pipes[i].trim();
         let s = cmd.split(' ');
         
         let commandHandler = client.commands.get(s[0].toLowerCase());
@@ -19,23 +19,25 @@ module.exports = async (message) => {
             buffer = null;
             continue;
         }
-        // let args = parseCommand(cmd, commandHandler.config.format);
 
         let stdin = new stream.PassThrough();
         let stdout = new stream.PassThrough();
         if(i > 0) {
             buffer.pipe(stdin);
-            buffer.on('end', ()=>{ 
+            buffer.on('end', () => { 
                 stdin.end();
             });
         } else {
             stdin.end();
         }
-        buffer = stdout;
+        buffer = stdout;        
         
-        message.content = cmd.split(' ').slice(1);
-        
-        commandHandler.run(message, stdin, stdout).catch((reason) => {
+        commandHandler.run({
+            channel:    message.channel,
+            author:     message.author,
+            mentions:   message.mentions,
+            content:    s.slice(1).join(' ')
+        }, stdin, stdout).catch((reason) => {
             stdout.end(`\`${commandHandler.config.name}\` has encountered an error`);
             console.log(reason);
             
@@ -52,26 +54,44 @@ module.exports = async (message) => {
 
     const chunks = []
     buffer.on('data', async (chunk) => {
-        let type = await FileType.fromBuffer(chunk);
-            
-        if(!type) type = {mime: "text/plain"};
-        switch (type.mime) {
-            case "image/png":
-                message.channel.send({files: [{ attachment: Buffer.from(chunk), name: 'image.png' }]});
-                break;
-            
-            case "image/jpeg":
-                message.channel.send({files: [{ attachment: Buffer.from(chunk), name: 'image.jpg' }]});
-                break;
-    
-            case "text/plain":
-                message.channel.send(sanitize(chunk.toString()));
-                break;
+        FileType.fromBuffer(chunk).then((type) => {
+            if(!type) type = {mime: "text/plain"};            
+            switch (type.mime) {
+                case "image/png":
+                    message.channel.send({files: [{ attachment: Buffer.from(chunk), name: 'image.png' }]});
+                    break;
+                
+                case "image/jpeg":
+                    message.channel.send({files: [{ attachment: Buffer.from(chunk), name: 'image.jpg' }]});
+                    break;
 
-            default:
-                console.log("Unknown format");
-                break;
-        }
+                case "image/webp":
+                    message.channel.send({files: [{ attachment: Buffer.from(chunk), name: 'image.webp' }]});
+                    break;
+
+                case "image/gif":
+                    message.channel.send({files: [{ attachment: Buffer.from(chunk), name: 'image.gif' }]});
+                    break;
+
+                case "video/mp4":
+                    message.channel.send({files: [{ attachment: Buffer.from(chunk), name: 'image.mp4' }]});
+                    break;
+    
+                case "text/plain":
+                    if(chunk.toString().length > 2000) {                        
+                        message.channel.send("Output is larger than Discord's character limit");
+                    } else {
+                        message.channel.send(sanitize(chunk.toString()));
+                    }
+                    break;
+    
+                default:
+                    console.log("Unknown format: ");
+                    console.log(type);
+                    
+                    break;
+            }
+        });
 
         chunks.push(chunk) 
     })
@@ -81,11 +101,6 @@ module.exports = async (message) => {
     buffer.on('error', (e) => {
         console.log(e);
         
-    })
-}
-
-async function asyncReadStream(stream) {
-    return new Promise((resolve, reject) => {
     })
 }
 

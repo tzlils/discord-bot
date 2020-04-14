@@ -1,5 +1,6 @@
 const Discord = require('discord.js');
 const parseCommand = require('../utils/parseCommand.js');
+const readStream = require('../utils/readStream.js');
 
 module.exports.config = {
     name: "grep",
@@ -11,14 +12,17 @@ module.exports.config = {
 
 module.exports.run = async (message, stdin, stdout) => {
   let args = parseCommand(message.content);
-  stdin.on('data', (data) => {
-    let res = match(args._.join(), data.toString() || args.string || "the quick brown fox jumped over the lazy dog");
+  readStream(stdin).then((data) => {       
+    let text = "the quick brown fox jumped over the lazy dog";
+    text = (data.length ? data.toString() : text);
+    text = (args.string ? args.string : text);    
+    let res = match(args._.join(), text);
     stdout.end(res);
   })
 }
 
 let match = (pattern, string) => {
-    try {
+    try {      
       return string.replace(RegExp(pattern, 'g'), "[$&]");
     } catch(e) {
       return "Invalid Regex";

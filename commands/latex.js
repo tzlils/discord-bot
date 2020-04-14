@@ -12,7 +12,7 @@ module.exports.config = {
 }
 
 module.exports.run = async (message, stdin, stdout) => {
-	let args = parseCommand(message.content.split(' ').slice(1));
+	let args = parseCommand(message.content);
 
     mjAPI.typeset({
         math: args._.join(' '),

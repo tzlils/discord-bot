@@ -1,4 +1,5 @@
 module.exports = (input) => {
+    input = input.split(" ");
     let args = {_: []};
     let curr = null;
     let cont = false;

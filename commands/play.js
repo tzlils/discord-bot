@@ -12,7 +12,7 @@ module.exports.config = {
 }
 
 module.exports.run = async (message, stdin, stdout) => {
-    let args = parseCommand(message.content.split(' ').slice(1));    
+    let args = parseCommand(message.content);    
     //http://ai-radio.org/128.opus
     // let loc = "/home/terradice/media/music/Ben Prunty - Ftl_ Faster Than Light - Original Soundtrack/01 - Space Cruise (Title).mp3";
     // console.log(message.member);

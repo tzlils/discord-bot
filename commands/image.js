@@ -10,31 +10,58 @@ module.exports.config = {
     category: "utility"
 }
 
-function hasImage(message) {   
-    return message.attachments.size > 0;
+function hasImage(m) {   
+    if(m.embeds.length > 0) {                            
+        if(m.embeds[0].type == "image" || m.embeds[0].type == "gifv") {
+            return true;
+        }
+    } else if(m.attachments.size > 0) {  
+        return true;                                      
+    } else if(/(?:\w+:)?\/\/(\S+)/.test(m.content)) {
+        return true;
+    }
+    return false;
 }
 
 module.exports.run = async (message, stdin, stdout) => {    
     let args = parseCommand(message.content);
     readStream(stdin).then((data) => {   
-        if(!data.length) {
-            const res = message.channel.messages.cache.filter(hasImage).last();            
-            let url = res.attachments.entries().next().value[1].attachment
-            fetch(url).then((data) => {
-                data.buffer().then((buf) => {
-                    stdout.end(buf);
+        if(!data.length) {            
+            let m = message.channel.messages.cache.filter(hasImage).last();            
+            if(!m) {
+                stdout.end("No image found");
+                return;
+            }
+            if(m.attachments.size > 0) {
+                fetch(m.attachments.entries().next().value[1].url).then((data) => {
+                    data.buffer().then((buf) => {
+                        stdout.end(buf);
+                    })
                 })
-            })
+            } else if(m.embeds.length > 0) {                
+                if(m.embeds[0].type == "image") {
+                    fetch(m.embeds[0].url).then((data) => {
+                        data.buffer().then((buf) => {
+                            stdout.end(buf);
+                        })
+                    })
+                } else if(m.embeds[0].type == "gifv") {
+                    fetch(m.embeds[0].video.url).then((data) => {
+                        data.buffer().then((buf) => {
+                            stdout.end(buf);
+                        })
+                    })
+                }
+            } else if(/(?:\w+:)?\/\/(\S+)/.test(m.content)) {
+                fetch(m.content).then((data) => {
+                    data.buffer().then((buf) => {
+                        stdout.end(buf);
+                    })
+                })
+            } else {
+                stdout.end("No image found");
+                // throw Error("No image found");
+            }
         }
     })
 }
-
-// for (const msg of messages) {
-//     if (msg.embeds.length !== 0) {
-//         if(msg.embeds[0].type == "image") {
-//             fetch(msg.embeds[0].url).then((res) => {
-//                 stdout.end(res.buffer());
-//             })
-//         }
-//     }
-// }

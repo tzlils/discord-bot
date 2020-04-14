@@ -1,3 +1,4 @@
+const readStream = require('../utils/readStream.js');
 
 module.exports.config = {
     name: "echo",
@@ -8,5 +9,11 @@ module.exports.config = {
 }
 
 module.exports.run = async (message, stdin, stdout) => {
-    stdout.end(message.content.join(' '));
+    readStream(stdin).then((data) => { 
+        if(data.length) {            
+            stdout.end(message.content.replace('-', data));
+        } else {            
+            stdout.end(message.content);
+        }
+    });
 }
