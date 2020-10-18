@@ -1,5 +1,5 @@
 const mjAPI = require('mathjax-node-svg2png');
-const parseCommand = require('../utils/parseCommand.js');
+const parseCommand = require('../../utils/parseCommand.js');
 
 module.exports.config = {
     name: "latex",
@@ -8,7 +8,7 @@ module.exports.config = {
                 {name: "scale", type: "float"},
             ],
     privilegeLevel: 0,
-    category: "utility"
+    category: "image"
 }
 
 module.exports.run = async (message, stdin, stdout) => {
@@ -21,6 +21,7 @@ module.exports.run = async (message, stdin, stdout) => {
         scale: (args.scale ? args.scale : 4),
         svg: false
     }, function(result,data) {
+		stdout.write("image/png");
 		stdout.end(uriToBuffer(result.png));
     });
 }

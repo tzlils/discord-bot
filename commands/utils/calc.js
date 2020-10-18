@@ -1,31 +1,36 @@
 const vm = require('vm')
-const Discord = require('discord.js');
+const readStream = require('../../utils/readStream.js');
 
 module.exports.config = {
     name: "calc",
-    description: "Calculates an equation",
+    description: "Calculates a javascript expression.",
     format: [],
     privilegeLevel: 0,
     category: "utility"
 }
 
 module.exports.run = async (message, stdin, stdout) => {
-    let res = calc(message.content);
-    stdout.end(res.toString());
+  stdout.write("text/plain")
+  let { data, type } = await readStream.stdin(stdin);
+  let res = calc(message.content.replace('-', data));
+  
+  res.then((data) => {
+    stdout.end(""+data);
+  })
 }
 
-function calc(fn) {
+async function calc(fn) {
     try {
-      let res = safeEval(fn);
+      let res = safeEval(fn, null, {timeout: 5});  
       return res;
     } catch(e) {
-      return "Invalid Expression";
+      return e.toString();
     }
-  }
+}
 
 function safeEval(code, context, opts) {
     var sandbox = {}
-    var resultKey = 'TERRADICE_SAFEEVAL';
+    var resultKey = 'SAFEEVAL';
     sandbox[resultKey] = {}
     var clearContext = `
       (function(){
@@ -38,27 +43,12 @@ function safeEval(code, context, opts) {
         });
       })();
     `
-    code = clearContext + resultKey + '=' + code
+    code = clearContext + resultKey + '=(async ()=>{' + code + "})()";    
     if (context) {
       Object.keys(context).forEach(function (key) {
         sandbox[key] = context[key]
       })
     }
-    vm.runInNewContext(code, sandbox, opts)
+    vm.runInNewContext(code, sandbox, opts);
     return sandbox[resultKey]
-  }
-
-// let calculate = (equation) => {
-//     let P = equation.match(/\((.*)\)/gm);
-//     console.log(equation);
-    
-//     if(P) {
-//         equation = equation.replace(P[1], calculate(P[1]));
-//     } else {
-//         let E = equation.match('([0-9]*)\^([0-9]*)');
-//         if(E) {
-//             equation = equation.replace(E.input, Math.pow(E[0], E[2]));
-//         }
-//     }
-//     return 0;
-// }
+}

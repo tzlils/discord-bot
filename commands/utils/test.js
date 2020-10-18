@@ -1,8 +1,8 @@
-const parseCommand = require('../utils/parseCommand.js');
+const parseCommand = require('../../utils/parseCommand.js');
 
 module.exports.config = {
     name: "test",
-    description: "Test command",
+    description: "Test command.",
     format: [],
     privilegeLevel: 0,
     category: "utility"

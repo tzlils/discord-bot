@@ -5,10 +5,20 @@
   "main": "index.js",
   "dependencies": {
     "@discordjs/opus": "^0.1.0",
+    "awk": "^1.0.0",
+    "canvas": "^2.6.1",
     "discord.js": "^12.1.1",
     "file-type": "^14.1.4",
+    "gifencoder": "^2.0.1",
     "gm": "^1.23.1",
-    "mathjax-node-svg2png": "^2.0.0"
+    "image-size": "^0.8.3",
+    "jimp": "^0.10.3",
+    "mathjax-node-svg2png": "^2.0.0",
+    "music-metadata": "^6.3.7",
+    "socks5-http-client": "^1.0.4",
+    "socks5-https-client": "^1.2.1",
+    "youtube-search": "^1.1.4",
+    "ytdl-core": "^2.1.1"
   },
   "devDependencies": {},
   "scripts": {

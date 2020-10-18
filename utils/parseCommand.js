@@ -19,12 +19,18 @@ module.exports = (input) => {
                 args[curr] += a.slice(0, -1);
                 curr = null;
             } else {
-                args[curr] += a;
+                if(args[curr].split(" ").length == 1) {
+                    args[curr] += a;
+                    curr = null;
+                } else {
+                    args[curr] += a;
+                }
             }
         } else {
             args._.push(a);
         }
     }
+    
     if(curr && args[curr] == "") {
         args[curr] = true;
     }
