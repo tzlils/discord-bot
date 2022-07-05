@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "@discordjs/opus": "^0.1.0",
+    "@discordjs/opus": "^0.8.0",
     "awk": "^1.0.0",
     "canvas": "^2.6.1",
     "discord.js": "^12.1.1",
